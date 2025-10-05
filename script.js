@@ -1,60 +1,100 @@
-const gallery = document.getElementById("gallery");
-const searchInput = document.getElementById("search");
-const modal = document.getElementById("modal");
-const modalImg = document.getElementById("modalImg");
-const modalDesc = document.getElementById("modalDesc");
-const closeBtn = document.getElementById("close");
-
-const API_KEY = "u1TZ5ugpwWPN15wQkdgKx9VPPGqVRCizmTlmq4yx";
-let retryCount = 0;
-
-async function fetchNASAImages(query = "space") {
-  try {
-    const response = await fetch(
-      `https://images-api.nasa.gov/search?q=${query}&media_type=image`
-    );
-    const data = await response.json();
-    displayImages(data.collection.items.slice(0, 100));
-    retryCount = 0; // reset retry counter
-  } catch (error) {
-    console.error("❌ NASA API failed:", error);
-    retryCount++;
-    if (retryCount <= 5) {
-      console.log(`🔁 Retrying in 10s... Attempt ${retryCount}`);
-      setTimeout(() => fetchNASAImages(query), 10000);
-    } else {
-      gallery.innerHTML = "<p>⚠️ Unable to load images after multiple attempts.</p>";
-    }
-  }
+/* خلفية متحركة للنجوم */
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  color: #fff;
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
 }
 
-function displayImages(items) {
-  gallery.innerHTML = "";
-  items.forEach(item => {
-    const img = document.createElement("img");
-    img.src = item.links?.[0]?.href;
-    img.alt = item.data?.[0]?.title || "NASA Image";
-    img.addEventListener("click", () => openModal(item));
-    gallery.appendChild(img);
-  });
+@keyframes stars {
+  from {transform: translateY(0);}
+  to {transform: translateY(-1000px);}
 }
 
-function openModal(item) {
-  modal.style.display = "flex";
-  modalImg.src = item.links?.[0]?.href;
-  modalDesc.textContent = item.data?.[0]?.description || "No description available.";
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 200%;
+  height: 200%;
+  background: transparent url("https://www.transparenttextures.com/patterns/stardust.png") repeat;
+  animation: stars 120s linear infinite;
+  opacity: 0.3;
+  z-index: 0;
 }
 
-closeBtn.addEventListener("click", () => (modal.style.display = "none"));
+header {
+  text-align: center;
+  padding: 20px;
+  position: relative;
+  z-index: 2;
+}
 
-window.addEventListener("click", (e) => {
-  if (e.target === modal) modal.style.display = "none";
-});
+input {
+  width: 60%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  margin-top: 10px;
+}
 
-searchInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    fetchNASAImages(searchInput.value);
-  }
-});
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  padding: 20px;
+  position: relative;
+  z-index: 2;
+}
 
-fetchNASAImages();
+.gallery img {
+  width: 100%;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.gallery img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px #00bfff;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.9);
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+  z-index: 999;
+}
+
+.modal img {
+  max-width: 90%;
+  max-height: 70vh;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+#close {
+  position: absolute;
+  top: 20px; right: 30px;
+  font-size: 35px;
+  cursor: pointer;
+  color: #fff;
+}
+
+#modalDesc {
+  max-width: 800px;
+  font-size: 18px;
+  color: #ccc;
+}
