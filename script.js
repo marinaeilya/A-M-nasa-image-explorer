@@ -1,100 +1,68 @@
-/* خلفية متحركة للنجوم */
-body {
-  margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-  color: #fff;
-  overflow-x: hidden;
-  min-height: 100vh;
-  position: relative;
+const apiKey = "u1TZ5ugpwWPN15wQkdgKx9VPPGqVRCizmTlmq4yx";
+const gallery = document.getElementById("gallery");
+const modal = document.getElementById("modal");
+const modalImg = document.getElementById("modalImg");
+const modalDesc = document.getElementById("modalDesc");
+const closeModal = document.getElementById("close");
+const searchInput = document.getElementById("searchInput");
+
+// الكواكب الافتراضية
+const defaultSearchTerms = [
+  "Sun", "Mercury", "Venus", "Earth", "Mars", 
+  "Jupiter", "Saturn", "Uranus", "Neptune", "Milky Way", "Andromeda"
+];
+
+async function fetchNASAImages(query) {
+  try {
+    const url = `https://images-api.nasa.gov/search?q=${query}&media_type=image`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.collection.items;
+  } catch (error) {
+    console.error("Connection failed, retrying...", error);
+    setTimeout(() => fetchNASAImages(query), 5000); // إعادة المحاولة تلقائيًا بعد 5 ثوانٍ
+  }
 }
 
-@keyframes stars {
-  from {transform: translateY(0);}
-  to {transform: translateY(-1000px);}
+async function loadImages(queries = defaultSearchTerms) {
+  gallery.innerHTML = "";
+  for (const term of queries) {
+    const items = await fetchNASAImages(term);
+    if (!items) continue;
+
+    const topImages = items.slice(0, 10); // 10 صور من كل كوكب
+
+    topImages.forEach(item => {
+      const img = document.createElement("img");
+      img.src = item.links[0].href;
+      img.alt = item.data[0].title;
+      img.addEventListener("click", () => {
+        modal.style.display = "flex";
+        modalImg.src = item.links[0].href;
+        modalDesc.textContent = item.data[0].description || "No description available.";
+      });
+      gallery.appendChild(img);
+    });
+  }
 }
 
-body::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  width: 200%;
-  height: 200%;
-  background: transparent url("https://www.transparenttextures.com/patterns/stardust.png") repeat;
-  animation: stars 120s linear infinite;
-  opacity: 0.3;
-  z-index: 0;
-}
+searchInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") {
+    const query = searchInput.value.trim();
+    if (query) {
+      loadImages([query]);
+    } else {
+      loadImages(defaultSearchTerms);
+    }
+  }
+});
 
-header {
-  text-align: center;
-  padding: 20px;
-  position: relative;
-  z-index: 2;
-}
+closeModal.addEventListener("click", () => {
+  modal.style.display = "none";
+});
 
-input {
-  width: 60%;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  outline: none;
-  font-size: 16px;
-  margin-top: 10px;
-}
+window.addEventListener("click", e => {
+  if (e.target === modal) modal.style.display = "none";
+});
 
-.gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-  padding: 20px;
-  position: relative;
-  z-index: 2;
-}
-
-.gallery img {
-  width: 100%;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.gallery img:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px #00bfff;
-}
-
-.modal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.9);
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  text-align: center;
-  padding: 20px;
-  z-index: 999;
-}
-
-.modal img {
-  max-width: 90%;
-  max-height: 70vh;
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-
-#close {
-  position: absolute;
-  top: 20px; right: 30px;
-  font-size: 35px;
-  cursor: pointer;
-  color: #fff;
-}
-
-#modalDesc {
-  max-width: 800px;
-  font-size: 18px;
-  color: #ccc;
-}
+loadImages();
