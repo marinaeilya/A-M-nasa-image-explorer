@@ -23,11 +23,14 @@ body::before {
   background: transparent url("https://www.transparenttextures.com/patterns/stardust.png") repeat;
   animation: stars 120s linear infinite;
   opacity: 0.3;
+  z-index: 0;
 }
 
 header {
   text-align: center;
   padding: 20px;
+  position: relative;
+  z-index: 2;
 }
 
 input {
@@ -37,6 +40,7 @@ input {
   border: none;
   outline: none;
   font-size: 16px;
+  margin-top: 10px;
 }
 
 .gallery {
@@ -44,6 +48,8 @@ input {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 15px;
   padding: 20px;
+  position: relative;
+  z-index: 2;
 }
 
 .gallery img {
@@ -69,6 +75,7 @@ input {
   flex-direction: column;
   text-align: center;
   padding: 20px;
+  z-index: 999;
 }
 
 .modal img {
@@ -84,4 +91,10 @@ input {
   font-size: 35px;
   cursor: pointer;
   color: #fff;
+}
+
+#modalDesc {
+  max-width: 800px;
+  font-size: 18px;
+  color: #ccc;
 }
